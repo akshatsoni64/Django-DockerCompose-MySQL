@@ -1,0 +1,42 @@
+networks:
+  django_demo:
+
+services:
+  db:
+    image: mysql:5.7
+    restart: always
+    container_name: database_con
+    environment:
+      MYSQL_DATABASE: demoDB
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '3302:3306'
+    expose:
+      # Opens port 3306 on the container
+      - '3302'
+      # Where our data will be persisted
+    volumes:
+      - data-vol:/var/lib/mysql
+    networks:
+      - django_demo
+  
+  project:
+    build:
+      context: .
+      dockerfile: ./project/Dockerfile
+    container_name: demo_project
+    # command: python manage.py runserver 0.0.0.0:8080
+    entrypoint: ["./wait.sh"]
+    volumes:
+      - ./project:/project
+    ports:
+      - "8080:8080"
+    networks:
+      - django_demo
+    depends_on:
+      - db
+
+# Names our volume
+volumes:
+  data-vol:
